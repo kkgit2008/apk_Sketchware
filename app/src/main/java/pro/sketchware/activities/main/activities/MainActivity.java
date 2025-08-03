@@ -410,6 +410,12 @@ public class MainActivity extends BasePermissionAppCompatActivity {
             startActivity(launcher);
         });
         bottomSheetDialog.setCancelable(true);
+
+        bottomSheetDialog.setOnCancelListener(dialog -> {
+            ConfigActivity.setSetting(ConfigActivity.SETTING_CRITICAL_UPDATE_REMINDER, true);
+            Toast.makeText(this, "See more at ' ≡ Changelog '", Toast.LENGTH_LONG).show();
+        });
+
         return bottomSheetDialog;
     }
 
