@@ -434,7 +434,7 @@ public class MainActivity extends BasePermissionAppCompatActivity {
         drawerToggle.syncState();
 
         if (isFirebaseInitialized(this)) {
-            FirebaseMessaging.getInstance().subscribeToTopic("all")
+            FirebaseMessaging.getInstance().subscribeToTopic("all");
             //FirebaseMessaging.getInstance().subscribeToTopic("all");
         }
 
