@@ -2,16 +2,10 @@ name: Android CI
 
 on:
   push:
-    paths:
-      - '.github/workflows/android.yml'
-      - 'app/**'
-      - 'gradle/**'
-      - 'build.gradle'
-      - 'gradle.properties'
-      - 'gradlew'
-      - 'gradlew.bat'
-      - 'public-stable-ids.txt'
-      - 'settings.gradle'
+    paths-ignore:
+      - '**.md'
+      - 'fastlane/**'
+      - '.github/workflows/crowdin_contributors.yml'
     branches-ignore:
       - 'wip/**'
   workflow_dispatch:
