@@ -26,9 +26,10 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import androidx.appcompat.widget.AppCompatImageView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.AppCompatImageView;
 
 import com.besome.sketch.beans.ImageBean;
 import com.besome.sketch.beans.LayoutBean;
@@ -79,27 +80,9 @@ import a.a.a.wB;
 import a.a.a.wq;
 import a.a.a.yB;
 import a.a.a.zB;
-import dev.aldi.sayuti.editor.view.item.ItemBadgeView;
-import dev.aldi.sayuti.editor.view.item.ItemCircleImageView;
-import dev.aldi.sayuti.editor.view.item.ItemCodeView;
-import dev.aldi.sayuti.editor.view.item.ItemLottieAnimation;
-import dev.aldi.sayuti.editor.view.item.ItemMaterialButton;
-import dev.aldi.sayuti.editor.view.item.ItemOTPView;
-import dev.aldi.sayuti.editor.view.item.ItemPatternLockView;
-import dev.aldi.sayuti.editor.view.item.ItemViewPager;
-import dev.aldi.sayuti.editor.view.item.ItemWaveSideBar;
-import dev.aldi.sayuti.editor.view.item.ItemYoutubePlayer;
+import dev.aldi.sayuti.editor.view.item.*;
 import mod.agus.jcoderz.beans.ViewBeans;
-import mod.agus.jcoderz.editor.view.item.ItemAnalogClock;
-import mod.agus.jcoderz.editor.view.item.ItemAutoCompleteTextView;
-import mod.agus.jcoderz.editor.view.item.ItemDatePicker;
-import mod.agus.jcoderz.editor.view.item.ItemDigitalClock;
-import mod.agus.jcoderz.editor.view.item.ItemGridView;
-import mod.agus.jcoderz.editor.view.item.ItemMultiAutoCompleteTextView;
-import mod.agus.jcoderz.editor.view.item.ItemRadioButton;
-import mod.agus.jcoderz.editor.view.item.ItemRatingBar;
-import mod.agus.jcoderz.editor.view.item.ItemTimePicker;
-import mod.agus.jcoderz.editor.view.item.ItemVideoView;
+import mod.agus.jcoderz.editor.view.item.*;
 import mod.bobur.XmlToSvgConverter;
 import mod.hey.studios.util.ProjectFile;
 import pro.sketchware.R;
@@ -112,8 +95,8 @@ import pro.sketchware.utility.InjectAttributeHandler;
 import pro.sketchware.utility.InvokeUtil;
 import pro.sketchware.utility.PropertiesUtil;
 import pro.sketchware.utility.ResourceUtil;
-import pro.sketchware.utility.SketchwareUtil;
 import pro.sketchware.utility.SvgUtils;
+import pro.sketchware.utility.ThemeUtils;
 
 public class ViewPane extends RelativeLayout {
     private final String stringsStart = "@string/";
@@ -126,26 +109,18 @@ public class ViewPane extends RelativeLayout {
     private kC resourcesManager;
     private String sc_id;
     private SvgUtils svgUtils;
+    private ColorsEditorManager colorsEditorManager;
+    private int defaultTextColor = 0; // need to save the original color before changes, cause using getDefaultColor() returns the current text color
+    private int defaultHintColor = 0;
 
     private Material3LibraryManager material3LibraryManager;
 
     public ViewPane(Context context) {
         super(context);
-        initialize();
     }
 
     public ViewPane(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
-        initialize();
-    }
-
-    private void initialize() {
-        context = getContext();
-        svgUtils = new SvgUtils(context);
-        svgUtils.initImageLoader();
-        setBackgroundColor(Color.WHITE);
-        //addRootLayout();
-        initTextView();
     }
 
     public void clearViews() {
@@ -231,10 +206,23 @@ public class ViewPane extends RelativeLayout {
         return (sy) findViewWithTag;
     }
 
-    public void setScId(String sc_id) {
+    public void initialize(String sc_id, boolean isPreviewMode) {
         this.sc_id = sc_id;
-        material3LibraryManager = new Material3LibraryManager(context, sc_id);
-        context = new ContextThemeWrapper(getContext(), material3LibraryManager.getViewEditorThemeOverlay());
+        material3LibraryManager = new Material3LibraryManager(getContext(), sc_id);
+        colorsEditorManager = new ColorsEditorManager();
+        int viewEditorThemeOverlay = material3LibraryManager.getViewEditorThemeOverlay();
+        context = new ContextThemeWrapper(getContext(), viewEditorThemeOverlay);
+        svgUtils = new SvgUtils(context);
+        svgUtils.initImageLoader();
+        if (viewEditorThemeOverlay == R.style.ThemeOverlay_SketchwarePro_ViewEditor) {
+            setBackgroundColor(Color.WHITE);
+        } else if (isPreviewMode) {
+            setBackgroundColor(ThemeUtils.getColor(context, R.attr.colorSurface));
+        } else {
+            setBackground(AppCompatResources.getDrawable(context, R.drawable.bg_view_pane));
+        }
+        //addRootLayout();
+        initTextView();
     }
 
     public void addRootLayout(ViewBean viewBean) {
@@ -429,11 +417,7 @@ public class ViewPane extends RelativeLayout {
                             xmlToSvgConverter.setImageVectorFromFile(tempImageView, xmlToSvgConverter.getVectorFullPath(DesignActivity.sc_id, viewBean.image.resName));
                         }
                     }
-                } catch (Exception e) {
-                    Log.e("ViewPane", "Error setting FAB icon: " + e.getMessage(), e);
-                    viewBean.image.resName = "default_image";
-                    ((FloatingActionButton) view).setImageResource(R.drawable.default_image);
-                }
+                } catch (Exception ignored) {}
             }
             view.setRotation(viewBean.image.rotate);
             view.setAlpha(viewBean.alpha);
@@ -1036,7 +1020,7 @@ public class ViewPane extends RelativeLayout {
         if (viewBean.layout.backgroundResColor == null) {
             view.setBackgroundColor(viewBean.layout.backgroundColor);
         } else {
-            view.setBackgroundColor(PropertiesUtil.parseColor(new ColorsEditorManager().getColorValue(context, viewBean.layout.backgroundResColor, 3, material3LibraryManager.canUseNightVariantColors())));
+            view.setBackgroundColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, viewBean.layout.backgroundResColor, 3, material3LibraryManager.canUseNightVariantColors())));
         }
         if (viewBean.parentType == ViewBean.VIEW_TYPE_LAYOUT_LINEAR) {
             LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(width, height);
@@ -1277,10 +1261,15 @@ public class ViewPane extends RelativeLayout {
         } else {
             textView.setTypeface(null, viewBean.text.textType);
         }
+        if (defaultTextColor == 0) {
+            defaultTextColor = textView.getTextColors().getDefaultColor();
+        }
         if (viewBean.text.resTextColor == null) {
-            textView.setTextColor(viewBean.text.textColor);
+            textView.setTextColor(
+                    viewBean.text.textColor == 0xffffff ? defaultTextColor : viewBean.text.textColor
+            );
         } else {
-            textView.setTextColor(PropertiesUtil.parseColor(new ColorsEditorManager().getColorValue(context, viewBean.text.resTextColor, 3, material3LibraryManager.canUseNightVariantColors())));
+            textView.setTextColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, viewBean.text.resTextColor, 3, material3LibraryManager.canUseNightVariantColors())));
         }
         textView.setTextSize(viewBean.text.textSize);
         textView.setLines(viewBean.text.line);
@@ -1315,10 +1304,15 @@ public class ViewPane extends RelativeLayout {
     private void updateEditText(EditText editText, ViewBean viewBean) {
         String str = viewBean.text.hint;
         editText.setHint(str.startsWith(stringsStart) ? getXmlString(str) : str);
+        if (defaultHintColor == 0) {
+            defaultHintColor = editText.getHintTextColors().getDefaultColor();
+        }
         if (viewBean.text.resHintColor == null) {
-            editText.setHintTextColor(viewBean.text.hintColor);
+            editText.setHintTextColor(
+                    viewBean.text.hintColor == 0xffffff ? defaultHintColor : viewBean.text.hintColor
+            );
         } else {
-            editText.setHintTextColor(PropertiesUtil.parseColor(new ColorsEditorManager().getColorValue(context, viewBean.text.resHintColor, 3, material3LibraryManager.canUseNightVariantColors())));
+            editText.setHintTextColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, viewBean.text.resHintColor, 3, material3LibraryManager.canUseNightVariantColors())));
         }
     }
 
@@ -1331,7 +1325,15 @@ public class ViewPane extends RelativeLayout {
         String strokeColor = handler.getAttributeValueOf("strokeColor");
         String strokeWidth = handler.getAttributeValueOf("strokeWidth");
 
-        cardView.setBackgroundColor(PropertiesUtil.parseColor(new ColorsEditorManager().getColorValue(context, bean.layout.backgroundResColor, 3, material3LibraryManager.canUseNightVariantColors())));
+        if (cardBackgroundColor.isEmpty()) {
+            if (bean.layout.backgroundResColor == null) {
+                cardView.setCardBackgroundColor(bean.layout.backgroundColor);
+            } else {
+                cardView.setCardBackgroundColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, bean.layout.backgroundResColor, 3, material3LibraryManager.canUseNightVariantColors())));
+            }
+        } else {
+            cardView.setCardBackgroundColor(PropertiesUtil.parseColor(colorsEditorManager.getColorValue(context, cardBackgroundColor, 3, material3LibraryManager.canUseNightVariantColors())));
+        }
 
         cardView.setCardElevation(PropertiesUtil.resolveSize(cardElevation, 4));
         cardView.setRadius(PropertiesUtil.resolveSize(cardCornerRadius, 8));

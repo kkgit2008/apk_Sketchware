@@ -1,5 +1,6 @@
 package com.besome.sketch.editor;
 
+import static android.view.View.LAYER_TYPE_HARDWARE;
 import static pro.sketchware.widgets.WidgetsCreatorManager.clearErrorOnTextChanged;
 
 import android.animation.ObjectAnimator;
@@ -82,6 +83,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import a.a.a.DB;
@@ -99,6 +102,7 @@ import a.a.a.Ts;
 import a.a.a.Us;
 import a.a.a.Vs;
 import a.a.a.ZB;
+import a.a.a.bB;
 import a.a.a.bC;
 import a.a.a.eC;
 import a.a.a.jC;
@@ -179,7 +183,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         ArrayList<BlockBean> eventBlocks = jC.a(B).a(M.getJavaName(), C + "_" + D);
         if (eventBlocks != null) {
             if (eventBlocks.isEmpty()) {
-                e(X);
+                runOnUiThread(() -> e(X));
             }
 
             boolean needToFindRoot = true;
@@ -191,10 +195,12 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                 Rs b2 = b(next);
                 blockIdsAndBlocks.put((Integer) b2.getTag(), b2);
                 o.g = Math.max(o.g, (Integer) b2.getTag() + 1);
-                o.a(b2, 0, 0);
-                b2.setOnTouchListener(this);
+                runOnUiThread(() -> {
+                    o.a(b2, 0, 0);
+                    b2.setOnTouchListener(this);
+                });
                 if (needToFindRoot) {
-                    o.getRoot().b(b2);
+                    runOnUiThread(() -> o.getRoot().b(b2));
                     needToFindRoot = false;
                 }
             }
@@ -203,15 +209,15 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                 if (block != null) {
                     Rs subStack1RootBlock;
                     if (next2.subStack1 >= 0 && (subStack1RootBlock = blockIdsAndBlocks.get(next2.subStack1)) != null) {
-                        block.e(subStack1RootBlock);
+                        runOnUiThread(() -> block.e(subStack1RootBlock));
                     }
                     Rs subStack2RootBlock;
                     if (next2.subStack2 >= 0 && (subStack2RootBlock = blockIdsAndBlocks.get(next2.subStack2)) != null) {
-                        block.f(subStack2RootBlock);
+                        runOnUiThread(() -> block.f(subStack2RootBlock));
                     }
                     Rs nextBlock;
                     if (next2.nextBlock >= 0 && (nextBlock = blockIdsAndBlocks.get(next2.nextBlock)) != null) {
-                        block.b(nextBlock);
+                        runOnUiThread(() -> block.b(nextBlock));
                     }
                     for (int i = 0; i < next2.parameters.size(); i++) {
                         String parameter = next2.parameters.get(i);
@@ -219,18 +225,24 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                             if (parameter.charAt(0) == '@') {
                                 Rs parameterBlock = blockIdsAndBlocks.get(Integer.valueOf(parameter.substring(1)));
                                 if (parameterBlock != null) {
-                                    block.a((Ts) block.V.get(i), parameterBlock);
+                                    int finalI = i;
+                                    runOnUiThread(() -> block.a((Ts) block.V.get(finalI), parameterBlock));
                                 }
                             } else {
-                                ((Ss) block.V.get(i)).setArgValue(parameter);
-                                block.m();
+                                int finalI = i;
+                                runOnUiThread(() -> {
+                                    ((Ss) block.V.get(finalI)).setArgValue(parameter);
+                                    block.m();
+                                });
                             }
                         }
                     }
                 }
             }
-            o.getRoot().k();
-            o.b();
+            runOnUiThread(() -> {
+                o.getRoot().k();
+                o.b();
+            });
         }
     }
 
@@ -1413,7 +1425,11 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     }
 
     public Rs b(BlockBean blockBean) {
-        return new Rs(this, Integer.parseInt(blockBean.id), blockBean.spec, blockBean.type, blockBean.typeName, blockBean.opCode);
+        Rs block = new Rs(this, Integer.parseInt(blockBean.id), blockBean.spec, blockBean.type, blockBean.typeName, blockBean.opCode);
+        // main reason why some blocks are not showing because Ts class is using View#LAYER_TYPE_SOFTWARE.
+        // we are changing it to fix it.
+        block.setLayerType(LAYER_TYPE_HARDWARE, null);
+        return block;
     }
 
     private RadioButton getFontRadioButton(String fontName) {
@@ -1449,10 +1465,10 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
             @Override
             public void a(String var1, int var2) {
-                LogicEditorActivity.this.a(ss, "getResources().getColor(R.color." + var1 + ")");
+                LogicEditorActivity.this.a(ss, "R.color." + var1);
             }
         });
-        colorPickerDialog.materialColorAttr((attr, attrColor) -> LogicEditorActivity.this.a(ss, "getMaterialColor(R.attr." + attr + ")"));
+        colorPickerDialog.materialColorAttr((attr, attrColor) -> LogicEditorActivity.this.a(ss, "R.attr." + attr));
         colorPickerDialog.showAtLocation(ss, Gravity.CENTER, 0, 0);
     }
 
@@ -1729,7 +1745,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
             if (!convert.equals("include")) {
                 Set<String> toNotAdd = new Ox(new jq(), M).readAttributesToReplace(viewBean);
                 if (!toNotAdd.contains("android:id")) {
-                    String classInfo = ss.getClassInfo().a();
+                    String classInfo = ss.getClassInfo().getClassName();
                     if ((classInfo.equals("CheckBox") && viewBean.getClassInfo().a("CompoundButton")) || viewBean.getClassInfo().a(classInfo)) {
                         viewGroup.addView(d(typeName, viewBean.id));
                     }
@@ -1781,7 +1797,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
     }
 
     private Context getContext() {
-        return getApplicationContext();
+        return this;
     }
 
     public void g(int i) {
@@ -2054,7 +2070,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                 } else if (tag.equals("listRemove")) {
                     J();
                 } else if (tag.equals("blockAdd")) {
-                    Intent intent = new Intent(getContext(), MakeBlockActivity.class);
+                    Intent intent = new Intent(LogicEditorActivity.this, MakeBlockActivity.class);
                     intent.putExtra("sc_id", B);
                     intent.putExtra("project_file", M);
                     intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -2104,7 +2120,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         }
         isViewBindingEnabled = new ProjectSettings(B).getValue(ProjectSettings.SETTING_ENABLE_VIEWBINDING, "false").equals("true");
         M = (ProjectFileBean) parcelable;
-        T = (int) wB.a(getBaseContext(), (float) T);
+        T = (int) wB.a(getContext(), (float) T);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> {
@@ -2200,7 +2216,10 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
         o.getRoot().k();
         g(getResources().getConfiguration().orientation);
         a(0, 0xffee7d16);
-        loadEventBlocks();
+
+        LoadEventBlocksTask loadEventBlocksTask = new LoadEventBlocksTask(this);
+        loadEventBlocksTask.execute();
+
         z();
     }
 
@@ -2669,7 +2688,7 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
 
         @Override
         public void a(String str) {
-            Toast.makeText(a, xB.b().a(activity.get().getContext(), R.string.common_error_failed_to_save), Toast.LENGTH_SHORT).show();
+            Toast.makeText(a, xB.b().a(activity.get(), R.string.common_error_failed_to_save), Toast.LENGTH_SHORT).show();
             activity.get().h();
         }
 
@@ -2762,6 +2781,32 @@ public class LogicEditorActivity extends BaseAppCompatActivity implements View.O
                 super(binding.getRoot());
                 this.binding = binding;
             }
+        }
+    }
+
+    public static class LoadEventBlocksTask {
+        private final WeakReference<LogicEditorActivity> activityRef;
+        private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        public LoadEventBlocksTask(LogicEditorActivity activity) {
+            activityRef = new WeakReference<>(activity);
+        }
+
+        public void execute() {
+            getActivity().k();
+            executorService.execute(this::doInBackground);
+        }
+
+        private void doInBackground() {
+            LogicEditorActivity activity = getActivity();
+            if (activity != null) {
+                activity.loadEventBlocks();
+                activity.runOnUiThread(activity::h);
+            }
+        }
+
+        private LogicEditorActivity getActivity() {
+            return activityRef.get();
         }
     }
 }

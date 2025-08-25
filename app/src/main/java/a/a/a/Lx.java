@@ -89,13 +89,13 @@ public class Lx {
         List<BuiltInLibraries.BuiltInLibrary> excludedLibraries = ExcludeBuiltInLibrariesActivity.getExcludedLibraries(metadata.sc_id);
         if (isLibraryNotExcluded(BuiltInLibraries.ANDROIDX_APPCOMPAT, excludedLibraries) && metadata.g) {
             content.append("""
-                    implementation 'androidx.appcompat:appcompat:1.7.0'\r
+                    implementation 'androidx.appcompat:appcompat:1.7.1'\r
                     implementation 'com.google.android.material:material:1.12.0'\r
                     """);
         }
 
         if (metadata.isFirebaseEnabled) {
-            content.append("implementation platform('com.google.firebase:firebase-bom:33.4.0')\r\n");
+            content.append("implementation platform('com.google.firebase:firebase-bom:34.1.0')\r\n");
         }
 
         if (isLibraryNotExcluded(BuiltInLibraries.FIREBASE_AUTH, excludedLibraries) && metadata.isFirebaseAuthUsed) {
@@ -246,7 +246,7 @@ public class Lx {
         if (!bean.convert.isEmpty()) {
             type = bean.convert;
         } else {
-            type = bean.getClassInfo().a();
+            type = bean.getClassInfo().getClassName();
         }
 
         return "final " + type + " " + bean.id + " = _view.findViewById(R.id." + bean.id + ");";
@@ -597,7 +597,8 @@ public class Lx {
     public static String a(String typeName, String typeInstanceName, AccessModifier accessModifier, String... parameters) {
         return a(typeName, typeInstanceName, accessModifier, false, parameters);
     }
-    public static String a(String typeName, String typeInstanceName, AccessModifier accessModifier, boolean isViewBindingEnabled ,String... parameters) {
+
+    public static String a(String typeName, String typeInstanceName, AccessModifier accessModifier, boolean isViewBindingEnabled, String... parameters) {
         String fieldDeclaration = "";
 
         if (typeName.equals("include") || typeName.equals("#")) {
@@ -1608,7 +1609,6 @@ public class Lx {
                 "    repositories {\r\n" +
                 "        google()\r\n" +
                 "        mavenCentral()\r\n" +
-                "        jcenter()\r\n" +
                 "    }\r\n" +
                 "    dependencies {\r\n" +
                 "        classpath 'com.android.tools.build:gradle:" + androidGradlePluginVersion + "'\r\n" +
@@ -1622,7 +1622,6 @@ public class Lx {
                 "    repositories {\r\n" +
                 "        google()\r\n" +
                 "        mavenCentral()\r\n" +
-                "        jcenter()\r\n" +
                 "    }\r\n" +
                 "}\r\n" +
                 "\r\n" +
@@ -2826,214 +2825,244 @@ public class Lx {
     /**
      * @return Content of a <code>SketchwareUtil.java</code> file, with indentation
      */
-    public static String i(String packageName) {
-        return "package " + packageName + ";\r\n" +
-                "import android.app.*;\r\n" +
-                "import android.content.*;\r\n" +
-                "import android.graphics.drawable.*;\r\n" +
-                "import android.net.*;\r\n" +
-                "import android.util.*;\r\n" +
-                "import android.view.*;\r\n" +
-                "import android.view.inputmethod.*;\r\n" +
-                "import android.widget.*;\r\n" +
-                "\r\n" +
-                "import java.io.*;\r\n" +
-                "import java.util.*;\n" +
-                "\r\n" +
-                "public class SketchwareUtil {\r\n" +
-                "\r\n" +
-                "    public static int TOP = 1;\r\n" +
-                "    public static int CENTER = 2;\r\n" +
-                "    public static int BOTTOM = 3;\r\n" +
-                "\r\n" +
-                "    public static void CustomToast(Context _context, String _message, int _textColor, int _textSize, int _bgColor, int _radius, int _gravity) {\r\n" +
-                "        Toast _toast = Toast.makeText(_context, _message, Toast.LENGTH_SHORT);\r\n" +
-                "        View _view = _toast.getView();\r\n" +
-                "        TextView _textView = _view.findViewById(android.R.id.message);\r\n" +
-                "        _textView.setTextSize(_textSize);\r\n" +
-                "        _textView.setTextColor(_textColor);\r\n" +
-                "        _textView.setGravity(Gravity.CENTER);\r\n" +
-                "\r\n" +
-                "        GradientDrawable _gradientDrawable = new GradientDrawable();\r\n" +
-                "        _gradientDrawable.setColor(_bgColor);\r\n" +
-                "        _gradientDrawable.setCornerRadius(_radius);\r\n" +
-                "        _view.setBackground(_gradientDrawable);\r\n" +
-                "        _view.setPadding(15, 10, 15, 10);\r\n" +
-                "        _view.setElevation(10);\r\n" +
-                "\r\n" +
-                "        switch (_gravity) {\r\n" +
-                "            case 1:\r\n" +
-                "                _toast.setGravity(Gravity.TOP, 0, 150);\r\n" +
-                "                break;\r\n" +
-                "\r\n" +
-                "            case 2:\r\n" +
-                "                _toast.setGravity(Gravity.CENTER, 0, 0);\r\n" +
-                "                break;\r\n" +
-                "\r\n" +
-                "            case 3:\r\n" +
-                "                _toast.setGravity(Gravity.BOTTOM, 0, 150);\r\n" +
-                "                break;\r\n" +
-                "        }\r\n" +
-                "        _toast.show();\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static void CustomToastWithIcon(Context _context, String _message, int _textColor, int _textSize, int _bgColor, int _radius, int _gravity, int _icon) {\r\n" +
-                "        Toast _toast = Toast.makeText(_context, _message, Toast.LENGTH_SHORT);\r\n" +
-                "        View _view = _toast.getView();\r\n" +
-                "        TextView _textView = (TextView) _view.findViewById(android.R.id.message);\r\n" +
-                "        _textView.setTextSize(_textSize);\r\n" +
-                "        _textView.setTextColor(_textColor);\r\n" +
-                "        _textView.setCompoundDrawablesWithIntrinsicBounds(_icon, 0, 0, 0);\r\n" +
-                "        _textView.setGravity(Gravity.CENTER);\r\n" +
-                "        _textView.setCompoundDrawablePadding(10);\r\n" +
-                "\r\n" +
-                "        GradientDrawable _gradientDrawable = new GradientDrawable();\r\n" +
-                "        _gradientDrawable.setColor(_bgColor);\r\n" +
-                "        _gradientDrawable.setCornerRadius(_radius);\r\n" +
-                "        _view.setBackground(_gradientDrawable);\r\n" +
-                "        _view.setPadding(10, 10, 10, 10);\r\n" +
-                "        _view.setElevation(10);\r\n" +
-                "\r\n" +
-                "        switch (_gravity) {\r\n" +
-                "            case 1:\r\n" +
-                "                _toast.setGravity(Gravity.TOP, 0, 150);\r\n" +
-                "                break;\r\n" +
-                "\r\n" +
-                "            case 2:\r\n" +
-                "                _toast.setGravity(Gravity.CENTER, 0, 0);\r\n" +
-                "                break;\r\n" +
-                "\r\n" +
-                "            case 3:\r\n" +
-                "                _toast.setGravity(Gravity.BOTTOM, 0, 150);\r\n" +
-                "                break;\r\n" +
-                "        }\r\n" +
-                "        _toast.show();\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static void sortListMap(final ArrayList<HashMap<String, Object>> listMap, final String key, final boolean isNumber, final boolean ascending) {\r\n" +
-                "        Collections.sort(listMap, new Comparator<HashMap<String, Object>>() {\r\n" +
-                "            public int compare(HashMap<String, Object> _compareMap1, HashMap<String, Object> _compareMap2) {\r\n" +
-                "                if (isNumber) {\r\n" +
-                "                    int _count1 = Integer.valueOf(_compareMap1.get(key).toString());\r\n" +
-                "                    int _count2 = Integer.valueOf(_compareMap2.get(key).toString());\r\n" +
-                "                    if (ascending) {\r\n" +
-                "                        return _count1 < _count2 ? -1 : _count1 < _count2 ? 1 : 0;\r\n" +
-                "                    } else {\r\n" +
-                "                        return _count1 > _count2 ? -1 : _count1 > _count2 ? 1 : 0;\r\n" +
-                "                    }\r\n" +
-                "                } else {\r\n" +
-                "                    if (ascending) {\r\n" +
-                "                        return (_compareMap1.get(key).toString()).compareTo(_compareMap2.get(key).toString());\r\n" +
-                "                    } else {\r\n" +
-                "                        return (_compareMap2.get(key).toString()).compareTo(_compareMap1.get(key).toString());\r\n" +
-                "                    }\r\n" +
-                "                }\r\n" +
-                "            }\r\n" +
-                "        });\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static void CropImage(Activity _activity, String _path, int _requestCode) {\r\n" +
-                "        try {\r\n" +
-                "            Intent _intent = new Intent(\"com.android.camera.action.CROP\");\r\n" +
-                "            File _file = new File(_path);\r\n" +
-                "            Uri _contentUri = Uri.fromFile(_file);\r\n" +
-                "            _intent.setDataAndType(_contentUri, \"image/*\");\r\n" +
-                "            _intent.putExtra(\"crop\", \"true\");\r\n" +
-                "            _intent.putExtra(\"aspectX\", 1);\r\n" +
-                "            _intent.putExtra(\"aspectY\", 1);\r\n" +
-                "            _intent.putExtra(\"outputX\", 280);\r\n" +
-                "            _intent.putExtra(\"outputY\", 280);\r\n" +
-                "            _intent.putExtra(\"return-data\", false);\r\n" +
-                "            _activity.startActivityForResult(_intent, _requestCode);\r\n" +
-                "        } catch (ActivityNotFoundException _e) {\r\n" +
-                "            Toast.makeText(_activity, \"Your device doesn't support the crop action!\", Toast.LENGTH_SHORT).show();\r\n" +
-                "        }\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static boolean isConnected(Context _context) {\r\n" +
-                "        ConnectivityManager _connectivityManager = (ConnectivityManager) _context.getSystemService(Context.CONNECTIVITY_SERVICE);\r\n" +
-                "        NetworkInfo _activeNetworkInfo = _connectivityManager.getActiveNetworkInfo();\r\n" +
-                "        return _activeNetworkInfo != null && _activeNetworkInfo.isConnected();\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static String copyFromInputStream(InputStream _inputStream) {\r\n" +
-                "        ByteArrayOutputStream _outputStream = new ByteArrayOutputStream();\r\n" +
-                "        byte[] _buf = new byte[1024];\r\n" +
-                "        int _i;\r\n" +
-                "        try {\r\n" +
-                "            while ((_i = _inputStream.read(_buf)) != -1){\r\n" +
-                "                _outputStream.write(_buf, 0, _i);\r\n" +
-                "            }\r\n" +
-                "            _outputStream.close();\r\n" +
-                "            _inputStream.close();\r\n" +
-                "        } catch (IOException _e) {\r\n" +
-                "        }\r\n" +
-                "        \r\n" +
-                "        return _outputStream.toString();\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static void hideKeyboard(Context _context) {\r\n" +
-                "        InputMethodManager _inputMethodManager = (InputMethodManager) _context.getSystemService(Context.INPUT_METHOD_SERVICE);\r\n" +
-                "        _inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);\r\n" +
-                "    }\r\n" +
-                "    \r\n" +
-                "    public static void showKeyboard(Context _context) {\r\n" +
-                "        InputMethodManager _inputMethodManager = (InputMethodManager) _context.getSystemService(Context.INPUT_METHOD_SERVICE);\r\n" +
-                "        _inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);\r\n" +
-                "    }\r\n" +
-                "    \r\n" +
-                "    public static void showMessage(Context _context, String _s) {\r\n" +
-                "        Toast.makeText(_context, _s, Toast.LENGTH_SHORT).show();\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static int getLocationX(View _view) {\r\n" +
-                "        int _location[] = new int[2];\r\n" +
-                "        _view.getLocationInWindow(_location);\r\n" +
-                "        return _location[0];\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static int getLocationY(View _view) {\r\n" +
-                "        int _location[] = new int[2];\r\n" +
-                "        _view.getLocationInWindow(_location);\r\n" +
-                "        return _location[1];\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static int getRandom(int _min, int _max) {\r\n" +
-                "        Random random = new Random();\r\n" +
-                "        return random.nextInt(_max - _min + 1) + _min;\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static ArrayList<Double> getCheckedItemPositionsToArray(ListView _list) {\r\n" +
-                "        ArrayList<Double> _result = new ArrayList<Double>();\r\n" +
-                "        SparseBooleanArray _arr = _list.getCheckedItemPositions();\r\n" +
-                "        for (int _iIdx = 0; _iIdx < _arr.size(); _iIdx++) {\r\n" +
-                "            if (_arr.valueAt(_iIdx))\r\n" +
-                "                _result.add((double) _arr.keyAt(_iIdx));\r\n" +
-                "        }\r\n" +
-                "        return _result;\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static float getDip(Context _context, int _input) {\r\n" +
-                "        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, _input, _context.getResources().getDisplayMetrics());\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static int getDisplayWidthPixels(Context _context) {\r\n" +
-                "        return _context.getResources().getDisplayMetrics().widthPixels;\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static int getDisplayHeightPixels(Context _context) {\r\n" +
-                "        return _context.getResources().getDisplayMetrics().heightPixels;\r\n" +
-                "    }\r\n" +
-                "\r\n" +
-                "    public static void getAllKeysFromMap(Map<String, Object> _map, ArrayList<String> _output) {\r\n" +
-                "        if (_output == null) return;\r\n" +
-                "        _output.clear();\r\n" +
-                "        if (_map == null || _map.size() < 1) return;\r\n" +
-                "        for (Map.Entry<String, Object> _entry : _map.entrySet()) {\r\n" +
-                "            _output.add(_entry.getKey());\r\n" +
-                "        }\r\n" +
-                "    }\r\n" +
-                "}\r\n";
+    public static String i(String packageName, boolean isMaterial3Enabled) {
+        StringBuilder sketchwareUtilSource = new StringBuilder();
+
+        sketchwareUtilSource.append("package ").append(packageName).append(";");
+
+        sketchwareUtilSource.append("""
+                
+                import android.app.*;
+                import android.content.*;
+                import android.graphics.drawable.*;
+                import android.net.*;
+                import android.util.*;
+                import android.view.*;
+                import android.view.inputmethod.*;
+                import android.widget.*;
+                
+                import java.io.*;
+                import java.util.*;
+                
+                """);
+
+        if (isMaterial3Enabled) {
+            sketchwareUtilSource.append("""
+                    import com.google.android.material.color.MaterialColors;
+                    
+                    """);
+        }
+
+        sketchwareUtilSource.append("""
+                public class SketchwareUtil {
+                
+                    public static int TOP = 1;
+                    public static int CENTER = 2;
+                    public static int BOTTOM = 3;
+                
+                    public static void CustomToast(Context _context, String _message, int _textColor, int _textSize, int _bgColor, int _radius, int _gravity) {
+                        Toast _toast = Toast.makeText(_context, _message, Toast.LENGTH_SHORT);
+                        View _view = _toast.getView();
+                        TextView _textView = _view.findViewById(android.R.id.message);
+                        _textView.setTextSize(_textSize);
+                        _textView.setTextColor(_textColor);
+                        _textView.setGravity(Gravity.CENTER);
+                
+                        GradientDrawable _gradientDrawable = new GradientDrawable();
+                        _gradientDrawable.setColor(_bgColor);
+                        _gradientDrawable.setCornerRadius(_radius);
+                        _view.setBackground(_gradientDrawable);
+                        _view.setPadding(15, 10, 15, 10);
+                        _view.setElevation(10);
+                
+                        switch (_gravity) {
+                            case 1:
+                                _toast.setGravity(Gravity.TOP, 0, 150);
+                                break;
+                
+                            case 2:
+                                _toast.setGravity(Gravity.CENTER, 0, 0);
+                                break;
+                
+                            case 3:
+                                _toast.setGravity(Gravity.BOTTOM, 0, 150);
+                                break;
+                        }
+                        _toast.show();
+                    }
+                
+                    public static void CustomToastWithIcon(Context _context, String _message, int _textColor, int _textSize, int _bgColor, int _radius, int _gravity, int _icon) {
+                        Toast _toast = Toast.makeText(_context, _message, Toast.LENGTH_SHORT);
+                        View _view = _toast.getView();
+                        TextView _textView = (TextView) _view.findViewById(android.R.id.message);
+                        _textView.setTextSize(_textSize);
+                        _textView.setTextColor(_textColor);
+                        _textView.setCompoundDrawablesWithIntrinsicBounds(_icon, 0, 0, 0);
+                        _textView.setGravity(Gravity.CENTER);
+                        _textView.setCompoundDrawablePadding(10);
+                
+                        GradientDrawable _gradientDrawable = new GradientDrawable();
+                        _gradientDrawable.setColor(_bgColor);
+                        _gradientDrawable.setCornerRadius(_radius);
+                        _view.setBackground(_gradientDrawable);
+                        _view.setPadding(10, 10, 10, 10);
+                        _view.setElevation(10);
+                
+                        switch (_gravity) {
+                            case 1:
+                                _toast.setGravity(Gravity.TOP, 0, 150);
+                                break;
+                
+                            case 2:
+                                _toast.setGravity(Gravity.CENTER, 0, 0);
+                                break;
+                
+                            case 3:
+                                _toast.setGravity(Gravity.BOTTOM, 0, 150);
+                                break;
+                        }
+                        _toast.show();
+                    }
+                
+                    public static void sortListMap(final ArrayList<HashMap<String, Object>> listMap, final String key, final boolean isNumber, final boolean ascending) {
+                        Collections.sort(listMap, new Comparator<HashMap<String, Object>>() {
+                            public int compare(HashMap<String, Object> _compareMap1, HashMap<String, Object> _compareMap2) {
+                                if (isNumber) {
+                                    int _count1 = Integer.valueOf(_compareMap1.get(key).toString());
+                                    int _count2 = Integer.valueOf(_compareMap2.get(key).toString());
+                                    if (ascending) {
+                                        return _count1 < _count2 ? -1 : _count1 < _count2 ? 1 : 0;
+                                    } else {
+                                        return _count1 > _count2 ? -1 : _count1 > _count2 ? 1 : 0;
+                                    }
+                                } else {
+                                    if (ascending) {
+                                        return (_compareMap1.get(key).toString()).compareTo(_compareMap2.get(key).toString());
+                                    } else {
+                                        return (_compareMap2.get(key).toString()).compareTo(_compareMap1.get(key).toString());
+                                    }
+                                }
+                            }
+                        });
+                    }
+                
+                    public static void CropImage(Activity _activity, String _path, int _requestCode) {
+                        try {
+                            Intent _intent = new Intent("com.android.camera.action.CROP");
+                            File _file = new File(_path);
+                            Uri _contentUri = Uri.fromFile(_file);
+                            _intent.setDataAndType(_contentUri, "image/*");
+                            _intent.putExtra("crop", "true");
+                            _intent.putExtra("aspectX", 1);
+                            _intent.putExtra("aspectY", 1);
+                            _intent.putExtra("outputX", 280);
+                            _intent.putExtra("outputY", 280);
+                            _intent.putExtra("return-data", false);
+                            _activity.startActivityForResult(_intent, _requestCode);
+                        } catch (ActivityNotFoundException _e) {
+                            Toast.makeText(_activity, "Your device doesn't support the crop action!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                
+                    public static boolean isConnected(Context _context) {
+                        ConnectivityManager _connectivityManager = (ConnectivityManager) _context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo _activeNetworkInfo = _connectivityManager.getActiveNetworkInfo();
+                        return _activeNetworkInfo != null && _activeNetworkInfo.isConnected();
+                    }
+                
+                    public static String copyFromInputStream(InputStream _inputStream) {
+                        ByteArrayOutputStream _outputStream = new ByteArrayOutputStream();
+                        byte[] _buf = new byte[1024];
+                        int _i;
+                        try {
+                            while ((_i = _inputStream.read(_buf)) != -1){
+                                _outputStream.write(_buf, 0, _i);
+                            }
+                            _outputStream.close();
+                            _inputStream.close();
+                        } catch (IOException _e) {
+                        }
+                
+                        return _outputStream.toString();
+                    }
+                
+                    public static void hideKeyboard(Context _context) {
+                        InputMethodManager _inputMethodManager = (InputMethodManager) _context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        _inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+                    }
+                
+                    public static void showKeyboard(Context _context) {
+                        InputMethodManager _inputMethodManager = (InputMethodManager) _context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        _inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                    }
+                
+                    public static void showMessage(Context _context, String _s) {
+                        Toast.makeText(_context, _s, Toast.LENGTH_SHORT).show();
+                    }
+                """);
+
+        if (isMaterial3Enabled) {
+            sketchwareUtilSource.append("""
+                    
+                        public static int getMaterialColor(Context context, int resourceId) {
+                            return MaterialColors.getColor(context, resourceId, "getMaterialColor");
+                        }
+                    
+                    """);
+        }
+
+        sketchwareUtilSource.append("""
+                    public static int getLocationX(View _view) {
+                        int _location[] = new int[2];
+                        _view.getLocationInWindow(_location);
+                        return _location[0];
+                    }
+                
+                    public static int getLocationY(View _view) {
+                        int _location[] = new int[2];
+                        _view.getLocationInWindow(_location);
+                        return _location[1];
+                    }
+                
+                    public static int getRandom(int _min, int _max) {
+                        Random random = new Random();
+                        return random.nextInt(_max - _min + 1) + _min;
+                    }
+                
+                    public static ArrayList<Double> getCheckedItemPositionsToArray(ListView _list) {
+                        ArrayList<Double> _result = new ArrayList<Double>();
+                        SparseBooleanArray _arr = _list.getCheckedItemPositions();
+                        for (int _iIdx = 0; _iIdx < _arr.size(); _iIdx++) {
+                            if (_arr.valueAt(_iIdx))
+                                _result.add((double) _arr.keyAt(_iIdx));
+                        }
+                        return _result;
+                    }
+                
+                    public static float getDip(Context _context, int _input) {
+                        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, _input, _context.getResources().getDisplayMetrics());
+                    }
+                
+                    public static int getDisplayWidthPixels(Context _context) {
+                        return _context.getResources().getDisplayMetrics().widthPixels;
+                    }
+                
+                    public static int getDisplayHeightPixels(Context _context) {
+                        return _context.getResources().getDisplayMetrics().heightPixels;
+                    }
+                
+                    public static void getAllKeysFromMap(Map<String, Object> _map, ArrayList<String> _output) {
+                        if (_output == null) return;
+                        _output.clear();
+                        if (_map == null || _map.size() < 1) return;
+                        for (Map.Entry<String, Object> _entry : _map.entrySet()) {
+                            _output.add(_entry.getKey());
+                        }
+                    }
+                }
+                """);
+
+        return sketchwareUtilSource.toString();
     }
 
     /**
@@ -3225,7 +3254,7 @@ public class Lx {
             stringBuilder.append('\t');
         }
     }
-    
+
     public static String pagerAdapter(Ox ox, String pagerName, String pagerItemLayoutName, ArrayList<ViewBean> pagerItemViews, String onBindCustomViewLogic, boolean isViewBindingEnabled) {
         String adapterName = a(pagerName, isViewBindingEnabled);
 
